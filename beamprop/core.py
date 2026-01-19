@@ -12,7 +12,7 @@ from sympy import oo
 
 
 # Input Ray parameter, i.e. height and angle
-def ray(y,theta):
+def ray(y, theta):
     '''
     Parameters
     ----------
@@ -30,11 +30,13 @@ def ray(y,theta):
         ]
 
     '''
-    
-    mat = np.array([[y],[theta]])
+
+    mat = np.array([[y], [theta]])
     return mat
 
 # Ray Transfer Matrix for ideal lens with focal length f
+
+
 def lens(f):
     '''
     Parameters
@@ -52,10 +54,12 @@ def lens(f):
 
     '''
 
-    mat = np.array([[1,0], [-1/f, 1]])
+    mat = np.array([[1, 0], [-1/f, 1]])
     return mat
 
 # Ray Transfer Matrix for propagation of distance d
+
+
 def prop(d):
     '''
     Parameters
@@ -72,12 +76,12 @@ def prop(d):
     ]
 
     '''
-    mat = np.array([[1,d], [0,1]])
+    mat = np.array([[1, d], [0, 1]])
     return mat
 
 
 # multiplying the matrices together. mat1 is the last matrix the light interacts with
-def mult(mat1,*argv):
+def mult(mat1, *argv):
     '''
     Parameters
     ----------
@@ -100,6 +104,8 @@ def mult(mat1,*argv):
     return Mat
 
 # Adding Gaussian beam parameters
+
+
 def Zr(wo, lam):
     '''
     Parameters
@@ -118,6 +124,7 @@ def Zr(wo, lam):
 
     zr = np.pi * wo**2 / lam
     return zr
+
 
 def W0(zr, lam):
     '''
@@ -141,9 +148,10 @@ def W0(zr, lam):
 # Remember, there should be an i in front of zr
 # but this complicates the calculations, so we usually just let z = 0
 # and don't explicitly deal with the i, but still do the math accordingly
-#def q0_func(z,zr):
+# def q0_func(z,zr):
 #    qz = z + zr
 #    return qz
+
 
 def q1_func(z, w0, lam, mat):
     '''
@@ -171,12 +179,14 @@ def q1_func(z, w0, lam, mat):
     C = mat[1][0]
     D = mat[1][1]
     zr = Zr(w0, lam)
-    real = (A*C*(z**2 + zr**2) + z*(A*D + B*C) + B*D) / (C**2*(z**2 + zr**2) + 2*C*D*z + D**2)
+    real = (A*C*(z**2 + zr**2) + z*(A*D + B*C) + B*D) / \
+        (C**2*(z**2 + zr**2) + 2*C*D*z + D**2)
     imag = (zr * (A*D - B*C)) / (C**2*(z**2 + zr**2) + 2*C*D*z + D**2)
     z = real
     zr = imag
     return z, zr
-    
+
+
 def q1_inv_func(z, w0, lam, mat):
     '''
     Parameters
@@ -200,17 +210,47 @@ def q1_inv_func(z, w0, lam, mat):
     '''
     A = mat[0][0]
     B = mat[0][1]
-    C = mat[1,0]
+    C = mat[1, 0]
     D = mat[1][1]
     zr = Zr(w0, lam)
-    real = (A*C*(z**2 + zr**2) + z*(A*D + B*C) + B*D) / (A**2*(z**2 + zr**2) + 2*A*B*z + B**2) 
-    imag = -zr * (A*D-B*C) / (A**2 *(z**2 + zr**2) + 2*A*B*z + B**2) 
+    real = (A*C*(z**2 + zr**2) + z*(A*D + B*C) + B*D) / \
+        (A**2*(z**2 + zr**2) + 2*A*B*z + B**2)
+    imag = -zr * (A*D-B*C) / (A**2 * (z**2 + zr**2) + 2*A*B*z + B**2)
     R = 1/real
     w = (-lam / imag / np.pi)**.5
     return R, w
 
 
-def plot(func, var, rang = np.arange(0,3,.01)):
+def abcd_interface(R, n1, n2):
+    """
+    ABCD matrix for a spherical refracting interface from n1 to n2.
+
+    Parameters
+    ----------
+    R : float
+        Radius of curvature (m). Positive if center is to the right.
+    n1 : float
+        Refractive index before the surface.
+    n2 : float
+        Refractive index after the surface.
+
+    Returns
+    -------
+    M : (2,2) ndarray
+        ABCD matrix acting on [y, theta]^T.
+    """
+    A = 1.0
+    B = 0.0
+    if np.isinf(R):
+        C = 0.0
+    else:
+        C = (n1 - n2) / (R * n2)
+    D = n1 / n2
+    return np.array([[A, B],
+                     [C, D]])
+
+
+def plot(func, var, rang=np.arange(0, 3, .01)):
     '''
     Parameters
     ----------
@@ -230,8 +270,8 @@ def plot(func, var, rang = np.arange(0,3,.01)):
     '''
     func = sym.lambdify(var, func)
     plt.figure()
-    plt.plot(rang, func(rang), color = 'b')
-    plt.plot(rang, -func(rang), color = 'b')
+    plt.plot(rang, func(rang), color='b')
+    plt.plot(rang, -func(rang), color='b')
     plt.grid()
     plt.xlabel('Optic Axis (m)')
     plt.ylabel('Beam size (m)')
